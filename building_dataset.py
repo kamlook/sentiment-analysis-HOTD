@@ -13,17 +13,21 @@
 
 import snscrape.modules.twitter as sntwitter
 import pandas as pd
+import datetime
 
 # COMMAND ----------
 
-season_length = pd.date_range(start="2022-08-14_00:00:00_UTC", end="2022-10-26_00:00:00_UTC", freq="1H")
+# MAGIC %md
+# MAGIC # Build dataset spanning across Season 1 airtime
+# MAGIC 
+# MAGIC ### Data retrieved hourly across all air time, capped at 50 tweets per hour. Takes 35 minutes to run and get 86,000 tweets total. If needed I can increase this.
 
 # COMMAND ----------
 
 # season_length = pd.date_range(start="2022-08-14 00:00:00", end="2022-10-26 00:00:00", freq="1H")  
 
 # Unix time will be easier to work with 
-season_length = list(range(1660460400, 1666771200, 3600)) # cutting it off early because I do not want to deal with null data at the moment. There is a way to clean it up though
+season_length = list(range(1660460400, 1666839600, 3600)) # cutting it off early because I do not want to deal with null data at the moment. There is a way to clean it up though
 
 column_list = ["id","dateTime","content","retweet_count", "like_count", "tweet_url"]
 tweet_list = []
@@ -35,16 +39,35 @@ for i in range(len(season_length)-1):
   print(f"Beginning scrape hour: {start}")
   # print(search_query)
   for j, tweet in enumerate(sntwitter.TwitterSearchScraper(search_query).get_items()):
-    if j < 50:
+    if j < 1500:
       tweet_list.append([tweet.id, tweet.date, tweet.content, tweet.retweetCount, tweet.likeCount, tweet.url]) # importing retweet and like counts for weighting in the future
     else:
       break
   print(f"Tweet count in this batch {j}")
-  if not i%5:
+  if not i%10:
     print(i)
     print(f"Oldest tweet retireved from {start}")
     print(tweet.date)
 master_tweet_df = pd.DataFrame(tweet_list, columns=column_list)
+
+# COMMAND ----------
+
+# If range method above does not work, just download EVERYTHING 
+len(master_tweet_df)
+
+# COMMAND ----------
+
+# Save this dataframe as a CSV to DBFS
+# Small: 86k records, 30 min 
+# Medium: 381k records, 2.17 hours
+# Large: 
+master_tweet_df.to_csv('/dbfs/home/kam.look@databricks.com/medium_twitter_dataset.csv')
+
+# COMMAND ----------
+
+# MAGIC %sh
+# MAGIC 
+# MAGIC ls -l '/dbfs/home/'
 
 # COMMAND ----------
 
@@ -53,31 +76,20 @@ master_tweet_df.tail(20)
 # COMMAND ----------
 
 # Save for later 
-
-ep_airs = ["2022-08-21","2022-08-28", "2022-09-04", "2022-09-11", "2022-09-18", "2022-09-25", "2022-10-02", "2022-10-09", "2022-10-16", "2022-10-23"]
-ep_ends = ["2022-08-26","2022-09-02", "2022-09-09", "2022-09-16", "2022-09-23", "2022-09-30", "2022-10-07", "2022-10-14", "2022-10-21", "2022-10-28"]
-start = "2022-08-21"
-end = "2022-08-26"
-
 # season_length = pd.date_range(start="2022-08-14 00:00:00", end="2022-10-29 00:00:00", freq="1H")
 
 column_list = ["id","dateTime","content","retweet_count", "like_count", "tweet_url"]
 tweet_list = []
-for i, start_date in enumerate(ep_airs):
-  start = start_date
-  end = ep_ends[i]
-  search_query = f'"House of the Dragon" OR "HOTD" OR to:HouseofDragon lang:en since:{start} until:{end}'
-  print(f"Beginning scrape for EP{i+1}")
-  for i, tweet in enumerate(sntwitter.TwitterSearchScraper(search_query).get_items()):
-    if i < 100:
-      if not i%10:
-        print(f"{i} tweets retrieved")
-      tweet_list.append([tweet.id, tweet.date, tweet.content, tweet.retweetCount, tweet.likeCount, tweet.url]) # importing retweet and like counts for weighting in the future
-    else:
-      break
-  print("Oldest tweet retireved")
-  print(tweet.date)
+
+search_query = f'"House of the Dragon" OR to:HouseofDragon lang:en since:2022-08-14 until:2022-10-30'
+for i, tweet in enumerate(sntwitter.TwitterSearchScraper(search_query).get_items()):
+  if not i%10000:
+    print(f"{i} tweets retrieved")
+    print(f"Current tweet date: {tweet.date}")
+  tweet_list.append([tweet.id, tweet.date, tweet.content, tweet.retweetCount, tweet.likeCount, tweet.url]) # importing retweet and like counts for weighting in the future
 m_tweet_df = pd.DataFrame(tweet_list, columns=column_list)
+print(f"Size of DF: {len(m_tweet_df)}")
+m_tweet_df.to_csv('/dbfs/home/kam.look@databricks.com/nolimits_twitter_dataset.csv')
 
 # COMMAND ----------
 
@@ -99,30 +111,7 @@ for i, tweet in enumerate(sntwitter.TwitterSearchScraper(test_query).get_items()
 
 # COMMAND ----------
 
-old = [123]
-old.append(tweet_list)
 
-# COMMAND ----------
-
-tweet_list
-
-# COMMAND ----------
-
-begin = 1660460400
-n = 1660464000
-n2 = 1660467600
-
-# COMMAND ----------
-
-n2 - begin
-
-# COMMAND ----------
-
-temp_list = list(range(1660460400, 1660467600, 3600))
-
-# COMMAND ----------
-
-temp_list
 
 # COMMAND ----------
 

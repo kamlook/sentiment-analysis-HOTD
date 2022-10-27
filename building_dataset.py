@@ -81,7 +81,7 @@ master_tweet_df.tail(20)
 column_list = ["id","dateTime","content","retweet_count", "like_count", "tweet_url"]
 tweet_list = []
 
-search_query = f'"House of the Dragon" OR to:HouseofDragon lang:en since:2022-08-14 until:2022-10-30'
+search_query = f'"House of the Dragon" OR #HouseOfTheDragon OR #HouseOfTheDragonHBO OR #HOTD OR to:HouseofDragon lang:en since:2022-08-14 until:2022-10-30'
 for i, tweet in enumerate(sntwitter.TwitterSearchScraper(search_query).get_items()):
   if not i%10000:
     print(f"{i} tweets retrieved")
@@ -89,11 +89,11 @@ for i, tweet in enumerate(sntwitter.TwitterSearchScraper(search_query).get_items
   tweet_list.append([tweet.id, tweet.date, tweet.content, tweet.retweetCount, tweet.likeCount, tweet.url]) # importing retweet and like counts for weighting in the future
 m_tweet_df = pd.DataFrame(tweet_list, columns=column_list)
 print(f"Size of DF: {len(m_tweet_df)}")
-m_tweet_df.to_csv('/dbfs/home/kam.look@databricks.com/nolimits_twitter_dataset.csv')
+m_tweet_df.to_csv('/dbfs/home/kam.look@databricks.com/nolimits2_twitter_dataset.csv')
 
 # COMMAND ----------
 
-len(m_tweet_df)
+json_tweet_df.head()
 
 # COMMAND ----------
 

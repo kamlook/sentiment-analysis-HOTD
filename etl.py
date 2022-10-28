@@ -22,6 +22,7 @@ spark = SparkSession\
 
 # COMMAND ----------
 
+# Read data from csv into Spark DF
 no_limits = spark.read.format("csv")\
   .option("header", "true")\
   .option("inferSchema", "true")\
@@ -32,16 +33,16 @@ no_limits = spark.read.format("csv")\
 
 # COMMAND ----------
 
-no_limits.show()
+# Create Parquet table 
+parq_table = "HOTD Parquet Table"
+
+no_limits.createOrReplaceTempView(parq_table)
+df.write.format("parquet").saveAsTable("Permanent HOTD Parquet Table")
 
 # COMMAND ----------
 
 # Verify quality of the data
 no_limits.where("tweet_url NOT LIKE '%twitter%'").show()
-
-# COMMAND ----------
-
-no_limits.select('*').where("id = 1585658565276356612").show(truncate=False)
 
 # COMMAND ----------
 
@@ -62,11 +63,3 @@ dbutils.fs.cp('dbfs:/home/kam.look@databricks.com/small_twitter_dataset.csv','db
 # COMMAND ----------
 
 print(f"Size of Spark Dataframe: {len(hotd_df.columns)}, {hotd_df.count()}")
-
-# COMMAND ----------
-
-small_df.where("tweet_url NOT LIKE '%twitter%'").show()
-
-# COMMAND ----------
-
-⌂

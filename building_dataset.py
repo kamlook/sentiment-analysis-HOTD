@@ -71,10 +71,6 @@ master_tweet_df.to_csv('/dbfs/home/kam.look@databricks.com/medium_twitter_datase
 
 # COMMAND ----------
 
-master_tweet_df.tail(20)
-
-# COMMAND ----------
-
 # Save for later 
 # season_length = pd.date_range(start="2022-08-14 00:00:00", end="2022-10-29 00:00:00", freq="1H")
 
@@ -108,11 +104,3 @@ for i, tweet in enumerate(sntwitter.TwitterSearchScraper(test_query).get_items()
   if i > 50:
     break
   tweet_list.append([tweet.id, tweet.date, tweet.content, tweet.retweetCount, tweet.likeCount, tweet.url])
-
-# COMMAND ----------
-
-
-
-# COMMAND ----------
-
-
